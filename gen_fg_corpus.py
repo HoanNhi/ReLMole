@@ -65,7 +65,7 @@ def remove_peptide_nitrogen(aa1_atoms, mol):
     #     return aa1_atoms, aa2_atoms, peptide_bond
 
 
-    peptide_bond = Chem.MolFromSmarts("C(O)N")
+    peptide_bond = Chem.MolFromSmarts("[C:1](O)[N:2]")
     if len(submol_1.GetSubstructMatches(peptide_bond)) > 0:
         aa1_atoms = aa1_atoms[:-1]
         return aa1_atoms, peptide_bond
@@ -73,7 +73,7 @@ def remove_peptide_nitrogen(aa1_atoms, mol):
     #     aa2_atoms = aa2_atoms[:-1]
     #     return aa1_atoms, aa2_atoms, peptide_bond
 
-    peptide_bond = Chem.MolFromSmarts("C(=C)N")
+    peptide_bond = Chem.MolFromSmarts("[C:1](=C)[N:2]")
     carbonxylic = Chem.MolFromSmarts("C(=O)O")
     if (len(submol_1.GetSubstructMatches(peptide_bond)) > 0
             and submol_1.GetSubstructMatches(carbonxylic) == 0):
@@ -84,7 +84,7 @@ def remove_peptide_nitrogen(aa1_atoms, mol):
     #     aa2_atoms = aa2_atoms[:-1]
     #     return aa1_atoms, aa2_atoms, peptide_bond
 
-    peptide_bond = Chem.MolFromSmarts("C(C)N")
+    peptide_bond = Chem.MolFromSmarts("[C:1](C)[N:2]")
     carbonxylic = Chem.MolFromSmarts("C(=O)O")
     if (len(submol_1.GetSubstructMatches(peptide_bond)) > 0
             and submol_1.GetSubstructMatches(carbonxylic) == 0):
