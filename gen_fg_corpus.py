@@ -259,7 +259,7 @@ if __name__ == '__main__':
     os.chdir('data/ZINC15')
 
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Splitting mol to FGs...")
-    with open('zinc15_250k.txt') as f:
+    with open('filtered_smiles') as f:
         smiles_list = f.read().splitlines()
     print(f"# mols: {len(smiles_list)}")
 
