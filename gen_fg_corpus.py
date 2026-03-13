@@ -164,6 +164,7 @@ def get_side_chain_atoms(mol, match, examined_backbone, smiles, sus_file = "sus_
                 queue.append(nbr_idx)
 
     if len(side_atoms) > 15:
+        print(f"{smiles} has suspicious side chain")
         with open(sus_file, "a") as f:
             f.write(smiles + "\n")
     return side_atoms
