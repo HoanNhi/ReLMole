@@ -39,67 +39,112 @@ ALL_AMINO = {
 ALL_AMINO = {k: Chem.MolFromSmarts(v) for k, v in ALL_AMINO.items()}
 STD_AMINO = {k: Chem.MolFromSmarts(v) for k, v in STD_AMINO.items()}
 
-def remove_peptide_nitrogen(aa1_atoms, mol):
-    # submol_1 = Chem.PathToSubmol(mol, aa1_atoms)
-    atom_map = {}
+def remove_peptide_nitrogen(aa1_atoms, aa2_atoms, mol):
+    atom_map1 = {}
+    atom_map2 = {}
     submol_1 = rdmolops.PathToSubmol(
     mol,
     [bond.GetIdx() for bond in mol.GetBonds()
      if bond.GetBeginAtomIdx() in aa1_atoms and bond.GetEndAtomIdx() in aa1_atoms],
-    atomMap=atom_map
+    atomMap=atom_map1
+    )
+
+    submol_2 = rdmolops.PathToSubmol(
+        mol,
+        [bond.GetIdx() for bond in mol.GetBonds()
+         if bond.GetBeginAtomIdx() in aa2_atoms and bond.GetEndAtomIdx() in aa2_atoms],
+        atomMap=atom_map2
     )
     # submol_2 = Chem.PathToSubmol(mol, aa2_atoms)
 
-    atom_map = {v:k for k, v in atom_map.items()}
+    atom_map1 = {v:k for k, v in atom_map1.items()}
+    atom_map2 = {v:k for k, v in atom_map2.items()}
     # aa1_atoms = list(aa1_atoms)
     # aa2_atoms = list(aa2_atoms)
 
     peptide_bond = Chem.MolFromSmarts("[C:1](=O)[N:2]")
-    substructs = submol_1.GetSubstructMatch(peptide_bond)
+    substructs = submol_1.GetSubstructMatches(peptide_bond)
     if len(substructs) > 0:
-        n_index = substructs[2]
-        aa1_atoms.remove(atom_map[n_index])
-        return aa1_atoms, peptide_bond
-    # elif len(submol_2.GetSubstructMatches(peptide_bond)) > 0:
-    #     aa2_atoms = aa2_atoms[:-1]
-    #     return aa1_atoms, aa2_atoms, peptide_bond
-
+        for substruct in substructs:
+            n_index = atom_map1[substruct[2]]
+            if not (n_index in aa1_atoms and n_index in aa2_atoms):
+                continue
+            aa1_atoms.remove(n_index)
+            return aa1_atoms, aa2_atoms, peptide_bond
+    substructs = submol_2.GetSubstructMatches(peptide_bond)
+    if len(substructs) > 0:
+        for substruct in substructs:
+            n_index = atom_map2[substruct[2]]
+            if not (n_index in aa1_atoms and n_index in aa2_atoms):
+                continue
+            aa2_atoms.remove(n_index)
+            return aa1_atoms, aa2_atoms, peptide_bond
 
     peptide_bond = Chem.MolFromSmarts("[C:1](O)[N:2]")
-    if len(submol_1.GetSubstructMatches(peptide_bond)) > 0:
-        aa1_atoms = aa1_atoms[:-1]
-        return aa1_atoms, peptide_bond
-    # elif len(submol_2.GetSubstructMatches(peptide_bond)) > 0:
-    #     aa2_atoms = aa2_atoms[:-1]
-    #     return aa1_atoms, aa2_atoms, peptide_bond
+    substructs = submol_1.GetSubstructMatches(peptide_bond)
+    if len(substructs) > 0:
+        for substruct in substructs:
+            n_index = atom_map1[substruct[2]]
+            if not (n_index in aa1_atoms and n_index in aa2_atoms):
+                continue
+            aa1_atoms.remove(n_index)
+            return aa1_atoms, aa2_atoms, peptide_bond
+    substructs = submol_2.GetSubstructMatches(peptide_bond)
+    if len(substructs) > 0:
+        for substruct in substructs:
+            n_index = atom_map2[substruct[2]]
+            if not (n_index in aa1_atoms and n_index in aa2_atoms):
+                continue
+            aa2_atoms.remove(n_index)
+            return aa1_atoms, aa2_atoms, peptide_bond
 
     peptide_bond = Chem.MolFromSmarts("[C:1](=C)[N:2]")
     carbonxylic = Chem.MolFromSmarts("C(=O)O")
-    if (len(submol_1.GetSubstructMatches(peptide_bond)) > 0
+    substructs = submol_1.GetSubstructMatches(peptide_bond)
+    if (len(substructs) > 0
             and submol_1.GetSubstructMatches(carbonxylic) == 0):
-        aa1_atoms = aa1_atoms[:-1]
-        return aa1_atoms, peptide_bond
-    # elif len(submol_2.GetSubstructMatches(peptide_bond)) > 0\
-    #         and submol_2.GetSubstructMatches(carbonxylic) == 0:
-    #     aa2_atoms = aa2_atoms[:-1]
-    #     return aa1_atoms, aa2_atoms, peptide_bond
+        for substruct in substructs:
+            n_index = atom_map1[substruct[2]]
+            if not (n_index in aa1_atoms and n_index in aa2_atoms):
+                continue
+            aa1_atoms.remove(n_index)
+            return aa1_atoms, aa2_atoms, peptide_bond
+    substructs = submol_2.GetSubstructMatches(peptide_bond)
+    if (len(substructs) > 0
+            and submol_2.GetSubstructMatches(carbonxylic) == 0):
+        for substruct in substructs:
+            n_index = atom_map2[substruct[2]]
+            if not (n_index in aa1_atoms and n_index in aa2_atoms):
+                continue
+            aa2_atoms.remove(n_index)
+            return aa1_atoms, aa2_atoms, peptide_bond
 
     peptide_bond = Chem.MolFromSmarts("[C:1](C)[N:2]")
     carbonxylic = Chem.MolFromSmarts("C(=O)O")
-    if (len(submol_1.GetSubstructMatches(peptide_bond)) > 0
+    if (len(substructs) > 0
             and submol_1.GetSubstructMatches(carbonxylic) == 0):
-        aa1_atoms = aa1_atoms[:-1]
-        return aa1_atoms, peptide_bond
-    # elif len(submol_2.GetSubstructMatches(peptide_bond)) > 0 \
-    #         and submol_2.GetSubstructMatches(carbonxylic) == 0:
-    #     aa2_atoms = aa2_atoms[:-1]
-    #     return aa1_atoms, aa2_atoms, peptide_bond
+        for substruct in substructs:
+            n_index = atom_map1[substruct[2]]
+            if not (n_index in aa1_atoms and n_index in aa2_atoms):
+                continue
+            aa1_atoms.remove(n_index)
+            return aa1_atoms, aa2_atoms, peptide_bond
+    substructs = submol_2.GetSubstructMatches(peptide_bond)
+    if (len(substructs) > 0
+            and submol_2.GetSubstructMatches(carbonxylic) == 0):
+        for substruct in substructs:
+            n_index = atom_map2[substruct[2]]
+            if not (n_index in aa1_atoms and n_index in aa2_atoms):
+                continue
+            aa2_atoms.remove(n_index)
+            return aa1_atoms, aa2_atoms, peptide_bond
 
-    return aa1_atoms, peptide_bond
+    return aa1_atoms, aa2_atoms, peptide_bond
 
-def get_side_chain_atoms(mol, match):
+def get_side_chain_atoms(mol, match, examined_backbone, smiles, sus_file = "sus_sidechain.txt"):
     backbone = set(match)  # backbone atoms
     sidechain_root = match[2]
+    filtered_examined_backbone = examined_backbone - backbone
 
     visited = set()
     queue = deque([sidechain_root])
@@ -107,22 +152,23 @@ def get_side_chain_atoms(mol, match):
 
     while queue:
         atom_idx = queue.popleft()
-        if atom_idx in visited:
+        if atom_idx in visited or atom_idx in filtered_examined_backbone:
             continue
         visited.add(atom_idx)
 
         atomLocal = mol.GetAtomWithIdx(atom_idx)
         for neighbor in atomLocal.GetNeighbors():
             nbr_idx = neighbor.GetIdx()
-            if nbr_idx not in backbone:
+            if nbr_idx not in backbone and nbr_idx not in filtered_examined_backbone:
                 side_atoms.add(nbr_idx)
                 queue.append(nbr_idx)
-            # if nbr_idx not in visited:
-            #     queue.append(nbr_idx)
 
+    if len(side_atoms) > 15:
+        with open(sus_file, "a") as f:
+            f.write(smiles + "\n")
     return side_atoms
 
-def get_fg_set(mol):
+def get_fg_set(mol, smiles):
     """
     Identify FGs and convert to SMILES
     Args:
@@ -131,24 +177,24 @@ def get_fg_set(mol):
     """
     fgs = []  # Function Groups
 
-    # <editor-fold desc="identify functional atoms and merge connected ones">
     marks = []
+    examined_backbone = set()
+    for patt in ALL_AMINO.values():
+        for sub in mol.GetSubstructMatches(patt):
+            examined_backbone.update(atom for atom in sub)
     for patt in ALL_AMINO.values():  # mark functional atoms
         for sub in mol.GetSubstructMatches(patt):
-            side_atoms = get_side_chain_atoms(mol, sub)
+            side_atoms = get_side_chain_atoms(mol, sub, examined_backbone, smiles = smiles)
             side_atoms.update(sub)
             marks.append(side_atoms)
 
-    # peptide_smarts = Chem.MolFromSmarts("C(=O)N")
-    # Peptide bond can also be: C(O)N, C(=C)N, C(C)N (the last two need further examination)
-    # peptide_matches = set(mol.GetSubstructMatches(peptide_smarts))
-
     for i in range(len(marks)):
-        # for j in range(i+1, len(marks)):
-        #     if len(set(marks[i]) & set(marks[j])) == 0:
-        #         continue
-        new_mark_i, _ = remove_peptide_nitrogen(marks[i], mol)
-        marks[i] = set(new_mark_i)
+        for j in range(i + 1, len(marks)):
+            if len(set(marks[i]) & set(marks[j])) == 0:
+                continue
+            new_mark_i, new_mark_j, _ = remove_peptide_nitrogen(marks[i], marks[j], mol)
+            marks[i] = set(new_mark_i)
+            marks[j] = set(new_mark_j)
 
     flattened_marks = set([i for atoms in marks for i in atoms])
     atom2fg = [[] for _ in range(mol.GetNumAtoms())]  # atom2fg[i]: list of i-th atom's FG idx
@@ -170,21 +216,21 @@ def get_fg_set(mol):
                 if atom2fg[a1][0] != atom2fg[a2][0]:
                     fgs[atom2fg[a2][0]] = set()
                 atom2fg[a2] = [atom2fg[a1][0]]
-            # else:
-            #     fgs.append({a1, a2})
-            #     atom2fg[a1].append(len(fgs) - 1)
-            #     atom2fg[a2].append(len(fgs) - 1)
 
-        # elif a1 in flattened_marks:  # only one atom is marked, add neighbour atom to its FG as its environment
-        #     assert len(atom2fg[a1]) == 1
-        #     # add a2 to a1's FG
-        #     fgs[atom2fg[a1][0]].add(a2)
-        #     atom2fg[a2].extend(atom2fg[a1])
-        # elif a2 in flattened_marks:
-        #     # add a1 to a2's FG
-        #     assert len(atom2fg[a2]) == 1
-        #     fgs[atom2fg[a2][0]].add(a1)
-        #     atom2fg[a1].extend(atom2fg[a2])
+        elif a1 in flattened_marks:  # only one atom is marked, add neighbour atom to its FG as its environment
+            # assert len(atom2fg[a1]) == 1
+            # add a2 to a1's FG
+            if len(atom2fg[a2]) == 0:
+                fgs.append({a2})
+                atom2fg[a2].append(len(fgs) - 1)
+
+        elif a2 in flattened_marks:
+            # add a1 to a2's FG
+            # assert len(atom2fg[a2]) == 1
+            if len(atom2fg[a1]) == 0:
+                fgs.append({a1})
+                atom2fg[a1].append(len(fgs) - 1)
+
         elif not (
                 a1 in flattened_marks or a2 in flattened_marks):  # both atoms are unmarked, i.e. a trivial C-C single bond
             # add single bond to fgs
@@ -192,13 +238,10 @@ def get_fg_set(mol):
                 fgs.append({a1})
                 atom2fg[a1].append(len(fgs) - 1)
             fgs[atom2fg[a1][0]].add(a2)
-            # if atom2fg[a1][0] != atom2fg[a2][0]:
-            #     fgs[atom2fg[a2][0]] = set()
             atom2fg[a2] = [atom2fg[a1][0]]
     tmp = []
     for fg in fgs:
         if len(fg) == 0: continue
-        # if len(fg) == 1 and mol.GetAtomWithIdx(list(fg)[0]).IsInRing(): continue  # single atom FGs: 1. marked atom only in ring: remove; 2. ion or simple substance: retain
         tmp.append(fg)
     fgs = tmp
     # </editor-fold>
@@ -207,23 +250,22 @@ def get_fg_set(mol):
 
     fg_smiles = set()
     for fg in fgs:
-        fg_smiles.add(Chem.MolFragmentToSmiles(mol, fg))
+        fg_smiles.add(Chem.MolFragmentToSmiles(mol, fg, isomericSmiles=False))
 
     return fg_smiles
-
 
 if __name__ == '__main__':
     os.chdir('data/ZINC15')
 
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Splitting mol to FGs...")
-    with open('zinc15_250k.txt') as f:
+    with open('test') as f:
         smiles_list = f.read().splitlines()
     print(f"# mols: {len(smiles_list)}")
 
     mol2fgs = []
     for smiles in tqdm(smiles_list):
         mol = Chem.MolFromSmiles(smiles)
-        fg_smiles = get_fg_set(mol)
+        fg_smiles = get_fg_set(mol, smiles)
         mol2fgs.append(list(fg_smiles))
 
     with open('mol2fgs_list.json', 'w') as f:

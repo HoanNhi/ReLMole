@@ -11,13 +11,13 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import MultipleLocator
 
-SAMP_NUM = 1000000000
+SAMP_NUM = 10
 
 
 if __name__ == '__main__':
     os.chdir('data/ZINC15')
 
-    with open('zinc15_250k.txt') as f:
+    with open('test') as f:
         smiles = f.read().splitlines()
     with open('mol2fgs_list.json', 'r') as f:
         mol2fgs = json.load(f)
@@ -30,6 +30,7 @@ if __name__ == '__main__':
 
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Getting FG-level vector...")
     mol2vec = np.zeros(shape=(mol_num, corpus_num), dtype=np.int8)
+    print(mol_num)
     for i in tqdm(range(mol_num)):
         idx = []
         for fg in mol2fgs[i]:
@@ -43,12 +44,12 @@ if __name__ == '__main__':
     del smiles, mol2fgs, fg_corpus, mol2vec
     gc.collect()
 
-    with open('zinc15_250k.txt') as f:
+    with open('test') as f:
         smiles = f.read().splitlines()
     mol_num = len(smiles)
     print(f"# mols: {mol_num}")
 
-    # fps
+    # fp
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Getting FP vectors...")
     fps = []
     for smi in tqdm(smiles):
@@ -105,7 +106,7 @@ if __name__ == '__main__':
     print(f"# mol pairs: {len(fp_sim)}")
 
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Plotting FP similarity CDF curve...")
-    hist, bin_edges = np.histogram(fp_sim, bins=1000000)
+    hist, bin_edges = np.histogram(fp_sim, bins=100)
     cdf = np.cumsum(hist/sum(hist))
     cdf = np.insert(cdf, 0, 0)
     plt.plot(bin_edges, cdf, label='fp_sim')
@@ -134,7 +135,7 @@ if __name__ == '__main__':
     print(f"# mol pairs: {len(fg_sim)}")
 
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Plotting FG similarity CDF curve...")
-    hist, bin_edges = np.histogram(fg_sim, bins=1000000)
+    hist, bin_edges = np.histogram(fg_sim, bins=100)
     cdf = np.cumsum(hist / sum(hist))
     cdf = np.insert(cdf, 0, 0)
     plt.plot(bin_edges, cdf, label='fg_sim')
